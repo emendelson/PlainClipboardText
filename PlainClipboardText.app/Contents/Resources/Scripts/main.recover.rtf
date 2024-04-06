@@ -1,0 +1,1432 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2707
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fnil\fcharset0 Verdana;\f1\fnil\fcharset0 Verdana-Bold;\f2\fnil\fcharset0 Verdana-Italic;
+}
+{\colortbl;\red255\green255\blue255;\red76\green78\blue78;\red0\green0\blue0;\red0\green0\blue255;
+\red64\green128\blue0;\red108\green5\blue211;\red0\green22\blue176;\red255\green0\blue0;}
+{\*\expandedcolortbl;;\csgenericrgb\c29999\c30457\c30457;\csgenericrgb\c0\c0\c0;\csgenericrgb\c0\c0\c100000;
+\csgenericrgb\c25000\c50001\c0;\csgenericrgb\c42337\c1841\c82833;\csgenericrgb\c0\c8656\c68986;\csgenericrgb\c100000\c0\c0;}
+\deftab480
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf2 -- PlainClipboardText - by Edward Mendelson, 29 December 2022\cf3 \
+\
+\cf2 -- converts styled clipboard text to plain text; to preserve styled text, turn on caps lock\cf3 \
+\cf2 -- to exit program when menu is not visible, turn on caps lock, \cf3 \
+\cf2 -- then hold down control key for around 1/2 second until a message appears\cf3 \
+\
+\cf2 -- based on an idea by Piyomaru:\cf3 \
+\cf2 -- https://forum.latenightsw.com/t/announce-plainertext-convert-styled-text-in-clipboard-to-plain-text-automatically/4083\cf3 \
+\
+\cf2 -- rewritten by Ben Surtees of SurteesStudio.com\cf3 \
+\cf2 -- changing icon and dynamic menu from code by Mark_FX at macscripter.net\cf3 \
+\
+\cf2 -- to prevent the app icon from appearing in the dock and to prevent the Esc key from exiting, \cf3 \
+\cf2 -- add "Application is background only" - "YES"  and "Application is Agent (UIElement)" - "YES" \cf3 \
+\cf2 -- to info.plist of the AppleScript app\cf3 \
+\
+
+\f1\b use
+\f0\b0  
+\f2\i \cf4 scripting additions
+\f0\i0 \cf3 \
+
+\f1\b use
+\f0\b0  
+\f2\i \cf4 framework
+\f0\i0 \cf3  "AppKit"\
+
+\f1\b use
+\f0\b0  
+\f2\i \cf4 framework
+\f0\i0 \cf3  "Foundation"\
+
+\f1\b use
+\f0\b0  
+\f2\i \cf4 script
+\f0\i0 \cf3  "PrefsStorageLib" \cf4 version\cf3  "1.1.0"\
+\
+
+\f1\b property
+\f0\b0  \cf5 myApp\cf3  : 
+\f1\b a reference
+\f0\b0  
+\f1\b to
+\f0\b0  
+\f2\i \cf6 current application
+\f0\i0 \cf3 \
+\
+
+\f1\b property
+\f0\b0  \cf5 statusBar\cf3  : 
+\f2\i \cf4 missing value
+\f0\i0 \cf3 \
+
+\f1\b property
+\f0\b0  \cf5 statusItem\cf3  : 
+\f2\i \cf4 missing value
+\f0\i0 \cf3 \
+
+\f1\b property
+\f0\b0  \cf5 statusItemMenu\cf3  : 
+\f2\i \cf4 missing value
+\f0\i0 \cf3 \
+
+\f1\b property
+\f0\b0  \cf5 statusItemMenuOpen\cf3  : 
+\f2\i \cf6 true
+\f0\i0 \cf3 \
+
+\f1\b property
+\f0\b0  \cf5 statusItemImage\cf3  : 
+\f2\i \cf4 missing value
+\f0\i0 \cf3 \
+
+\f1\b property
+\f0\b0  \cf5 statusItemTitle\cf3  : "PlainClipboardText"\
+
+\f1\b property
+\f0\b0  \cf5 msgTitle\cf3  : "PlainClipboardText"\
+\
+
+\f1\b property
+\f0\b0  \cf5 interval\cf3  : 
+\f2\i \cf4 missing value
+\f0\i0 \cf3 \
+
+\f1\b property
+\f0\b0  \cf5 runOption\cf3  : 
+\f2\i \cf6 true
+\f0\i0 \cf3 \
+
+\f1\b property
+\f0\b0  \cf5 oldState\cf3  : 
+\f2\i \cf4 missing value
+\f0\i0 \cf3 \
+
+\f1\b property
+\f0\b0  \cf5 capsLockKeyOn\cf3  : 
+\f2\i \cf4 missing value
+\f0\i0 \cf3 \
+
+\f1\b property
+\f0\b0  \cf5 imageFile\cf3  : 
+\f2\i \cf4 missing value
+\f0\i0 \cf3 \
+\
+
+\f1\b property
+\f0\b0  \cf5 aboutMenuItem\cf3  : 
+\f2\i \cf4 missing value
+\f0\i0 \cf3 \
+
+\f1\b property
+\f0\b0  \cf5 disabledMenuItem\cf3  : 
+\f2\i \cf4 missing value
+\f0\i0 \cf3 \
+
+\f1\b property
+\f0\b0  \cf5 enabledMenuItem\cf3  : 
+\f2\i \cf4 missing value
+\f0\i0 \cf3 \
+
+\f1\b property
+\f0\b0  \cf5 noCapsMenuItem\cf3  : 
+\f2\i \cf4 missing value
+\f0\i0 \cf3 \
+
+\f1\b property
+\f0\b0  \cf5 capsOnMenuItem\cf3  : 
+\f2\i \cf4 missing value
+\f0\i0 \cf3 \
+
+\f1\b property
+\f0\b0  \cf5 disabledCapsPromptMenuItem\cf3  : 
+\f2\i \cf4 missing value
+\f0\i0 \cf3 \
+
+\f1\b property
+\f0\b0  \cf5 quarterMenuItem\cf3  : 
+\f2\i \cf4 missing value
+\f0\i0 \cf3 \
+
+\f1\b property
+\f0\b0  \cf5 halfMenuItem\cf3  : 
+\f2\i \cf4 missing value
+\f0\i0 \cf3 \
+
+\f1\b property
+\f0\b0  \cf5 secondMenuItem\cf3  : 
+\f2\i \cf4 missing value
+\f0\i0 \cf3 \
+\
+
+\f1\b on
+\f0\b0  
+\f1\b \cf4 run
+\f0\b0 \cf3  \{\}\
+	\
+	
+\f1\b \cf7 prepare storage
+\f0\b0 \cf3  \cf7 for\cf3  (
+\f1\b \cf7 path to
+\f0\b0 \cf3  
+\f1\b me
+\f0\b0 ) \cf7 default values\cf3  \{\cf5 interval\cf3 :1.0\}\
+	
+\f1\b set
+\f0\b0  \cf5 interval\cf3  
+\f1\b to
+\f0\b0  
+\f1\b \cf7 value for key
+\f0\b0 \cf3  "interval"\
+	\
+	
+\f1\b my
+\f0\b0  \cf8 createStatusItem\cf3 :\cf5 statusItemTitle\cf3 \
+	\
+
+\f1\b end
+\f0\b0  
+\f1\b \cf4 run
+\f0\b0 \cf3 \
+\
+
+\f1\b on
+\f0\b0  \cf8 createStatusItem\cf3 :\cf5 title\cf3 \
+	\
+	\cf2 -- Get the system's Status Bar object\cf3 \
+	
+\f1\b set
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 statusBar\cf3  
+\f1\b to
+\f0\b0  \cf5 myApp's\cf3  \cf5 NSStatusBar's\cf3  \cf8 systemStatusBar\cf3 ()\
+	\
+	\cf2 -- load a standard MacOS image, but you can load an image from the appBundle\cf3 \
+	\cf2 -- set my statusItemImage to myApp's NSImage's imageNamed:(myApp's NSImageNameAdvanced)\cf3 \
+	\
+	
+\f1\b if
+\f0\b0  ((\cf5 capsLockKeyOn\cf3  
+\f1\b is
+\f0\b0  
+\f2\i \cf6 true
+\f0\i0 \cf3 ) 
+\f1\b or
+\f0\b0  (\cf5 runOption\cf3  
+\f1\b is
+\f0\b0  
+\f2\i \cf6 false
+\f0\i0 \cf3 )) 
+\f1\b then
+\f0\b0 \
+		
+\f1\b set
+\f0\b0  \cf5 imageFile\cf3  
+\f1\b to
+\f0\b0  "Inactive.png"\
+	
+\f1\b else
+\f0\b0 \
+		
+\f1\b set
+\f0\b0  \cf5 imageFile\cf3  
+\f1\b to
+\f0\b0  "Active.png"\
+	
+\f1\b end
+\f0\b0  
+\f1\b if
+\f0\b0 \
+	
+\f1\b set
+\f0\b0  \cf5 imageFilePath\cf3  
+\f1\b to
+\f0\b0  \cf6 POSIX path\cf3  
+\f1\b of
+\f0\b0  (
+\f1\b \cf7 path to resource
+\f0\b0 \cf3  \cf5 imageFile\cf3 )\
+	
+\f1\b set
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 statusItemImage\cf3  
+\f1\b to
+\f0\b0  \cf5 myApp's\cf3  \cf5 NSImage's\cf3  \cf8 alloc\cf3 ()'s \cf8 initWithContentsOfFile\cf3 :\cf5 imageFilePath\cf3 \
+	\
+	
+\f1\b set
+\f0\b0  \cf5 statusBarThickness\cf3  
+\f1\b to
+\f0\b0  \cf5 statusBar's\cf3  \cf8 thickness\cf3 () \cf2 -- Get thickness of the Status Bar\cf3 \
+	\
+	\cf2 -- Set the Image size to be 4 pixels less that the thickness of the Status Bar, and square.\cf3 \
+	\cf5 statusItemImage's\cf3  \cf8 setSize\cf3 :(\cf5 myApp's\cf3  \cf8 NSMakeSize\cf3 ((\cf5 statusBarThickness\cf3  - 4), (\cf5 statusBarThickness\cf3  - 4)))\
+	\
+	\cf2 -- Create the Status Item with a title and image, for just an image, then set empty title string.\cf3 \
+	
+\f1\b set
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 statusItem\cf3  
+\f1\b to
+\f0\b0  \cf5 statusBar's\cf3  \cf8 statusItemWithLength\cf3 :(\cf5 myApp's\cf3  \cf5 NSVariableStatusItemLength\cf3 )\
+	\cf5 statusItem's\cf3  \cf5 button's\cf3  \cf8 setTitle\cf3 :""\
+	\cf5 statusItem's\cf3  \cf5 button's\cf3  \cf8 setImage\cf3 :\cf5 statusItemImage\cf3 \
+	\cf5 statusItem's\cf3  \cf5 button's\cf3  \cf8 setImagePosition\cf3 :(\cf5 myApp's\cf3  \cf5 NSImageLeft\cf3 )\
+	\
+	
+\f1\b my
+\f0\b0  \cf8 createMenuItems\cf3 ()\
+	\
+
+\f1\b end
+\f0\b0  \cf8 createStatusItem\cf3 :\
+\
+
+\f1\b on
+\f0\b0  \cf8 createMenuItems\cf3 ()\
+	\
+	
+\f1\b set
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 statusItemMenu\cf3  
+\f1\b to
+\f0\b0  \cf5 myApp's\cf3  \cf5 NSMenu's\cf3  \cf8 alloc\cf3 ()'s \cf8 initWithTitle\cf3 :""\
+	
+\f1\b set
+\f0\b0  \cf5 delegate\cf3  
+\f1\b of
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 statusItemMenu\cf3  
+\f1\b to
+\f0\b0  
+\f1\b me
+\f0\b0 \
+	\
+	
+\f1\b my
+\f0\b0  (\cf5 statusItemMenu's\cf3  \cf8 setAutoenablesItems\cf3 :
+\f2\i \cf6 false
+\f0\i0 \cf3 )\
+	\
+	
+\f1\b set
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 aboutMenuItem\cf3  
+\f1\b to
+\f0\b0  \cf5 myApp's\cf3  \cf5 NSMenuItem's\cf3  \cf8 alloc\cf3 ()'s \cf8 initWithTitle\cf3 :"About PlainClipboardText" \cf8 action\cf3 :"aboutAction" \cf8 keyEquivalent\cf3 :"h"\
+	
+\f1\b set
+\f0\b0  \cf5 enabled\cf3  
+\f1\b of
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 aboutMenuItem\cf3  
+\f1\b to
+\f0\b0  
+\f2\i \cf6 true
+\f0\i0 \cf3 \
+	
+\f1\b set
+\f0\b0  \cf5 target\cf3  
+\f1\b of
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 aboutMenuItem\cf3  
+\f1\b to
+\f0\b0  
+\f1\b me
+\f0\b0 \
+	\cf5 statusItemMenu's\cf3  \cf8 addItem\cf3 :(
+\f1\b my
+\f0\b0  \cf5 aboutMenuItem\cf3 )\
+	\
+	\cf5 statusItemMenu's\cf3  \cf8 addItem\cf3 :(\cf5 myApp's\cf3  \cf5 NSMenuItem's\cf3  \cf5 separatorItem\cf3 )\
+	\
+	
+\f1\b if
+\f0\b0  \cf5 runOption\cf3  
+\f1\b is
+\f0\b0  
+\f2\i \cf6 true
+\f0\i0 \cf3  
+\f1\b then
+\f0\b0 \
+		\
+		
+\f1\b set
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 enabledMenuItem\cf3  
+\f1\b to
+\f0\b0  \cf5 myApp's\cf3  \cf5 NSMenuItem's\cf3  \cf8 alloc\cf3 ()'s \cf8 initWithTitle\cf3 :"Enabled" \cf8 action\cf3 :"enableAction" \cf8 keyEquivalent\cf3 :"e"\
+		
+\f1\b my
+\f0\b0  (\cf5 enabledMenuItem's\cf3  \cf8 setState\cf3 :1)\
+		
+\f1\b set
+\f0\b0  \cf5 target\cf3  
+\f1\b of
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 enabledMenuItem\cf3  
+\f1\b to
+\f0\b0  
+\f1\b me
+\f0\b0 \
+		\
+	
+\f1\b else
+\f0\b0 \
+		\
+		
+\f1\b set
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 enabledMenuItem\cf3  
+\f1\b to
+\f0\b0  \cf5 myApp's\cf3  \cf5 NSMenuItem's\cf3  \cf8 alloc\cf3 ()'s \cf8 initWithTitle\cf3 :"Click to enable" \cf8 action\cf3 :"enableAction" \cf8 keyEquivalent\cf3 :"e"\
+		\cf2 -- my (enabledMenuItem's setState:1)\cf3 \
+		
+\f1\b set
+\f0\b0  \cf5 target\cf3  
+\f1\b of
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 enabledMenuItem\cf3  
+\f1\b to
+\f0\b0  
+\f1\b me
+\f0\b0 \
+		\
+	
+\f1\b end
+\f0\b0  
+\f1\b if
+\f0\b0 \
+	\
+	\cf5 statusItemMenu's\cf3  \cf8 addItem\cf3 :(
+\f1\b my
+\f0\b0  \cf5 enabledMenuItem\cf3 )\
+	\
+	
+\f1\b set
+\f0\b0  \cf5 currentModifierFlags\cf3  
+\f1\b to
+\f0\b0  (\cf5 myApp's\cf3  \cf5 NSEvent's\cf3  \cf8 modifierFlags\cf3 ())\
+	
+\f1\b set
+\f0\b0  \cf5 capsLockKeyOn\cf3  
+\f1\b to
+\f0\b0  (\cf5 currentModifierFlags\cf3  
+\f1\b div
+\f0\b0  (\cf5 myApp's\cf3  \cf5 NSEventModifierFlagCapsLock\cf3  
+\f1\b as
+\f0\b0  
+\f2\i \cf4 integer
+\f0\i0 \cf3 ) 
+\f1\b mod
+\f0\b0  2 = 1) 
+\f1\b as
+\f0\b0  
+\f2\i \cf4 boolean
+\f0\i0 \cf3 \
+	\
+	
+\f1\b if
+\f0\b0  \cf5 runOption\cf3  
+\f1\b is
+\f0\b0  
+\f2\i \cf6 true
+\f0\i0 \cf3  
+\f1\b then
+\f0\b0 \
+		\
+		
+\f1\b set
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 noCapsMenuItem\cf3  
+\f1\b to
+\f0\b0  \cf5 myApp's\cf3  \cf5 NSMenuItem's\cf3  \cf8 alloc\cf3 ()'s \cf8 initWithTitle\cf3 :"(press caps lock to disable temporarily)" \cf8 action\cf3 :"dummy" \cf8 keyEquivalent\cf3 :""\
+		
+\f1\b set
+\f0\b0  \cf5 enabled\cf3  
+\f1\b of
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 noCapsMenuItem\cf3  
+\f1\b to
+\f0\b0  
+\f2\i \cf6 false
+\f0\i0 \cf3 \
+		
+\f1\b set
+\f0\b0  \cf5 target\cf3  
+\f1\b of
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 noCapsMenuItem\cf3  
+\f1\b to
+\f0\b0  
+\f1\b me
+\f0\b0 \
+		
+\f1\b if
+\f0\b0  \cf5 capsLockKeyOn\cf3  
+\f1\b is
+\f0\b0  
+\f2\i \cf6 false
+\f0\i0 \cf3  
+\f1\b then
+\f0\b0 \
+			\cf5 statusItemMenu's\cf3  \cf8 addItem\cf3 :(
+\f1\b my
+\f0\b0  \cf5 noCapsMenuItem\cf3 )\
+			
+\f1\b my
+\f0\b0  \cf8 menuImageShow\cf3 ()\
+		
+\f1\b end
+\f0\b0  
+\f1\b if
+\f0\b0 \
+		\
+		
+\f1\b set
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 capsOnMenuItem\cf3  
+\f1\b to
+\f0\b0  \cf5 myApp's\cf3  \cf5 NSMenuItem's\cf3  \cf8 alloc\cf3 ()'s \cf8 initWithTitle\cf3 :"(caps lock ON: temporarily disabled) " \cf8 action\cf3 :"dummy" \cf8 keyEquivalent\cf3 :""\
+		
+\f1\b set
+\f0\b0  \cf5 enabled\cf3  
+\f1\b of
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 noCapsMenuItem\cf3  
+\f1\b to
+\f0\b0  
+\f2\i \cf6 false
+\f0\i0 \cf3 \
+		
+\f1\b set
+\f0\b0  \cf5 target\cf3  
+\f1\b of
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 capsOnMenuItem\cf3  
+\f1\b to
+\f0\b0  
+\f1\b me
+\f0\b0 \
+		
+\f1\b if
+\f0\b0  \cf5 capsLockKeyOn\cf3  
+\f1\b is
+\f0\b0  
+\f2\i \cf6 true
+\f0\i0 \cf3  
+\f1\b then
+\f0\b0 \
+			\cf5 statusItemMenu's\cf3  \cf8 addItem\cf3 :(
+\f1\b my
+\f0\b0  \cf5 capsOnMenuItem\cf3 )\
+			
+\f1\b my
+\f0\b0  \cf8 inactiveImageShow\cf3 ()\
+		
+\f1\b end
+\f0\b0  
+\f1\b if
+\f0\b0 \
+		\
+	
+\f1\b else
+\f0\b0 \
+		\
+		
+\f1\b set
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 disabledCapsPromptMenuItem\cf3  
+\f1\b to
+\f0\b0  \cf5 myApp's\cf3  \cf5 NSMenuItem's\cf3  \cf8 alloc\cf3 ()'s \cf8 initWithTitle\cf3 :"(when enabled, caps lock ON = disabled) " \cf8 action\cf3 :"dummy" \cf8 keyEquivalent\cf3 :""\
+		
+\f1\b set
+\f0\b0  \cf5 enabled\cf3  
+\f1\b of
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 disabledCapsPromptMenuItem\cf3  
+\f1\b to
+\f0\b0  
+\f2\i \cf6 false
+\f0\i0 \cf3 \
+		
+\f1\b set
+\f0\b0  \cf5 target\cf3  
+\f1\b of
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 capsOnMenuItem\cf3  
+\f1\b to
+\f0\b0  
+\f1\b me
+\f0\b0 \
+		\cf5 statusItemMenu's\cf3  \cf8 addItem\cf3 :(
+\f1\b my
+\f0\b0  \cf5 disabledCapsPromptMenuItem\cf3 )\
+		
+\f1\b my
+\f0\b0  \cf8 inactiveImageShow\cf3 ()\
+		\
+	
+\f1\b end
+\f0\b0  
+\f1\b if
+\f0\b0 \
+	\
+	
+\f1\b set
+\f0\b0  \cf5 seperatorMenuItem\cf3  
+\f1\b to
+\f0\b0  \cf5 myApp's\cf3  \cf5 NSMenuItem's\cf3  \cf8 separatorItem\cf3 ()\
+	\cf5 statusItemMenu's\cf3  \cf8 addItem\cf3 :\cf5 seperatorMenuItem\cf3 \
+	\
+	
+\f1\b set
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 quarterMenuItem\cf3  
+\f1\b to
+\f0\b0  \cf5 myApp's\cf3  \cf5 NSMenuItem's\cf3  \cf8 alloc\cf3 ()'s \cf8 initWithTitle\cf3 :"Timer: 0.25 sec" \cf8 action\cf3 :"quarterSecond" \cf8 keyEquivalent\cf3 :"2"\
+	
+\f1\b set
+\f0\b0  \cf5 enabled\cf3  
+\f1\b of
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 quarterMenuItem\cf3  
+\f1\b to
+\f0\b0  
+\f2\i \cf6 true
+\f0\i0 \cf3 \
+	
+\f1\b set
+\f0\b0  \cf5 target\cf3  
+\f1\b of
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 quarterMenuItem\cf3  
+\f1\b to
+\f0\b0  
+\f1\b me
+\f0\b0 \
+	\cf5 statusItemMenu's\cf3  \cf8 addItem\cf3 :(
+\f1\b my
+\f0\b0  \cf5 quarterMenuItem\cf3 )\
+	
+\f1\b if
+\f0\b0  \cf5 interval\cf3  
+\f1\b is
+\f0\b0  0.25 
+\f1\b then
+\f0\b0 \
+		
+\f1\b my
+\f0\b0  (\cf5 quarterMenuItem's\cf3  \cf8 setState\cf3 :1)\
+	
+\f1\b end
+\f0\b0  
+\f1\b if
+\f0\b0 \
+	\
+	
+\f1\b set
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 halfMenuItem\cf3  
+\f1\b to
+\f0\b0  \cf5 myApp's\cf3  \cf5 NSMenuItem's\cf3  \cf8 alloc\cf3 ()'s \cf8 initWithTitle\cf3 :"Timer: 0.5 sec" \cf8 action\cf3 :"halfSecond" \cf8 keyEquivalent\cf3 :"5"\
+	
+\f1\b set
+\f0\b0  \cf5 enabled\cf3  
+\f1\b of
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 halfMenuItem\cf3  
+\f1\b to
+\f0\b0  
+\f2\i \cf6 true
+\f0\i0 \cf3 \
+	
+\f1\b set
+\f0\b0  \cf5 target\cf3  
+\f1\b of
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 halfMenuItem\cf3  
+\f1\b to
+\f0\b0  
+\f1\b me
+\f0\b0 \
+	\cf5 statusItemMenu's\cf3  \cf8 addItem\cf3 :(
+\f1\b my
+\f0\b0  \cf5 halfMenuItem\cf3 )\
+	
+\f1\b if
+\f0\b0  \cf5 interval\cf3  
+\f1\b is
+\f0\b0  0.5 
+\f1\b then
+\f0\b0 \
+		
+\f1\b my
+\f0\b0  (\cf5 halfMenuItem's\cf3  \cf8 setState\cf3 :1)\
+	
+\f1\b end
+\f0\b0  
+\f1\b if
+\f0\b0 \
+	\
+	
+\f1\b set
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 secondMenuItem\cf3  
+\f1\b to
+\f0\b0  \cf5 myApp's\cf3  \cf5 NSMenuItem's\cf3  \cf8 alloc\cf3 ()'s \cf8 initWithTitle\cf3 :"Timer: 1.0 sec" \cf8 action\cf3 :"fullSecond" \cf8 keyEquivalent\cf3 :"1"\
+	
+\f1\b set
+\f0\b0  \cf5 enabled\cf3  
+\f1\b of
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 secondMenuItem\cf3  
+\f1\b to
+\f0\b0  
+\f2\i \cf6 true
+\f0\i0 \cf3 \
+	
+\f1\b set
+\f0\b0  \cf5 target\cf3  
+\f1\b of
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 secondMenuItem\cf3  
+\f1\b to
+\f0\b0  
+\f1\b me
+\f0\b0 \
+	\cf5 statusItemMenu's\cf3  \cf8 addItem\cf3 :(
+\f1\b my
+\f0\b0  \cf5 secondMenuItem\cf3 )\
+	
+\f1\b if
+\f0\b0  \cf5 interval\cf3  
+\f1\b is
+\f0\b0  1.0 
+\f1\b then
+\f0\b0 \
+		
+\f1\b my
+\f0\b0  (\cf5 secondMenuItem's\cf3  \cf8 setState\cf3 :1)\
+	
+\f1\b end
+\f0\b0  
+\f1\b if
+\f0\b0 \
+	\
+	
+\f1\b set
+\f0\b0  \cf5 seperatorMenuItem\cf3  
+\f1\b to
+\f0\b0  \cf5 myApp's\cf3  \cf5 NSMenuItem's\cf3  \cf8 separatorItem\cf3 ()\
+	\cf5 statusItemMenu's\cf3  \cf8 addItem\cf3 :\cf5 seperatorMenuItem\cf3 \
+	\
+	
+\f1\b set
+\f0\b0  \cf5 quitMenuItem\cf3  
+\f1\b to
+\f0\b0  \cf5 myApp's\cf3  \cf5 NSMenuItem's\cf3  \cf8 alloc\cf3 ()'s \cf8 initWithTitle\cf3 :"Quit PlainClipboardText" \cf8 action\cf3 :"quitStatusItem" \cf8 keyEquivalent\cf3 :"q"\
+	\cf2 -- quitMenuItem's setIndentationLevel:2\cf3 \
+	\cf5 quitMenuItem's\cf3  \cf8 setTarget\cf3 :
+\f1\b me
+\f0\b0 \
+	\cf5 statusItemMenu's\cf3  \cf8 addItem\cf3 :\cf5 quitMenuItem\cf3 \
+	\
+	\cf5 statusItem's\cf3  \cf8 setMenu\cf3 :\cf5 statusItemMenu\cf3 \
+	\
+
+\f1\b end
+\f0\b0  \cf8 createMenuItems\cf3 \
+\
+
+\f1\b on
+\f0\b0  \cf8 menuImageShow\cf3 ()\
+	
+\f1\b set
+\f0\b0  \cf5 imageFilePath\cf3  
+\f1\b to
+\f0\b0  \cf6 POSIX path\cf3  
+\f1\b of
+\f0\b0  (
+\f1\b \cf7 path to resource
+\f0\b0 \cf3  "Active.png")\
+	
+\f1\b set
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 statusItemImage\cf3  
+\f1\b to
+\f0\b0  \cf5 myApp's\cf3  \cf5 NSImage's\cf3  \cf8 alloc\cf3 ()'s \cf8 initWithContentsOfFile\cf3 :\cf5 imageFilePath\cf3 \
+	\cf5 statusItem's\cf3  \cf5 button's\cf3  \cf8 setImage\cf3 :\cf5 statusItemImage\cf3 \
+
+\f1\b end
+\f0\b0  \cf8 menuImageShow\cf3 \
+\
+
+\f1\b on
+\f0\b0  \cf8 inactiveImageShow\cf3 ()\
+	
+\f1\b set
+\f0\b0  \cf5 imageFilePath\cf3  
+\f1\b to
+\f0\b0  \cf6 POSIX path\cf3  
+\f1\b of
+\f0\b0  (
+\f1\b \cf7 path to resource
+\f0\b0 \cf3  "Inactive.png")\
+	
+\f1\b set
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 statusItemImage\cf3  
+\f1\b to
+\f0\b0  \cf5 myApp's\cf3  \cf5 NSImage's\cf3  \cf8 alloc\cf3 ()'s \cf8 initWithContentsOfFile\cf3 :\cf5 imageFilePath\cf3 \
+	\cf5 statusItem's\cf3  \cf5 button's\cf3  \cf8 setImage\cf3 :\cf5 statusItemImage\cf3 \
+
+\f1\b end
+\f0\b0  \cf8 inactiveImageShow\cf3 \
+\
+
+\f1\b on
+\f0\b0  \cf8 quarterSecond\cf3 ()\
+	
+\f1\b set
+\f0\b0  \cf5 interval\cf3  
+\f1\b to
+\f0\b0  0.25\
+	
+\f1\b my
+\f0\b0  \cf8 createMenuItems\cf3 ()\
+
+\f1\b end
+\f0\b0  \cf8 quarterSecond\cf3 \
+\
+
+\f1\b on
+\f0\b0  \cf8 halfSecond\cf3 ()\
+	
+\f1\b set
+\f0\b0  \cf5 interval\cf3  
+\f1\b to
+\f0\b0  0.5\
+	
+\f1\b my
+\f0\b0  \cf8 createMenuItems\cf3 ()\
+
+\f1\b end
+\f0\b0  \cf8 halfSecond\cf3 \
+\
+
+\f1\b on
+\f0\b0  \cf8 fullSecond\cf3 ()\
+	
+\f1\b set
+\f0\b0  \cf5 interval\cf3  
+\f1\b to
+\f0\b0  1.0\
+	
+\f1\b my
+\f0\b0  \cf8 createMenuItems\cf3 ()\
+
+\f1\b end
+\f0\b0  \cf8 fullSecond\cf3 \
+\
+
+\f1\b on
+\f0\b0  \cf8 quitStatusItem\cf3 ()\
+	
+\f1\b my
+\f0\b0  \cf8 removeStatusItem\cf3 ()\
+	
+\f1\b tell
+\f0\b0  
+\f1\b me
+\f0\b0  
+\f1\b to
+\f0\b0  
+\f1\b \cf4 quit
+\f0\b0 \cf3 \
+
+\f1\b end
+\f0\b0  \cf8 quitStatusItem\cf3 \
+\
+
+\f1\b on
+\f0\b0  \cf8 removeStatusItem\cf3 ()\
+	\cf5 statusBar's\cf3  \cf8 removeStatusItem\cf3 :\cf5 statusItem\cf3 \
+
+\f1\b end
+\f0\b0  \cf8 removeStatusItem\cf3 \
+\
+\cf2 -- Start NSMenuDelegate Functions\cf3 \
+
+\f1\b on
+\f0\b0  \cf8 menuWillOpen\cf3 :\cf5 sender\cf3 \
+	
+\f1\b set
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 statusItemMenuOpen\cf3  
+\f1\b to
+\f0\b0  
+\f2\i \cf6 true
+\f0\i0 \cf3 \
+
+\f1\b end
+\f0\b0  \cf8 menuWillOpen\cf3 :\
+\
+
+\f1\b on
+\f0\b0  \cf8 menuDidClose\cf3 :\cf5 sender\cf3 \
+	
+\f1\b set
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 statusItemMenuOpen\cf3  
+\f1\b to
+\f0\b0  
+\f2\i \cf6 false
+\f0\i0 \cf3 \
+
+\f1\b end
+\f0\b0  \cf8 menuDidClose\cf3 :\
+\cf2 -- End NSMenuDelegate Functions\cf3 \
+\
+
+\f1\b on
+\f0\b0  \cf8 aboutAction\cf3 ()\
+	
+\f1\b \cf4 activate
+\f0\b0 \cf3 \
+	
+\f1\b \cf7 display dialog
+\f0\b0 \cf3  "This app runs in the background and converts styled text in the clipboard to plain text." & \cf6 return\cf3  & \cf6 return\cf3  & "You may disable conversion (retain text styling) by clicking the Enable menu item. Return to the menu to re-enable conversion to plain text." & \cf6 return\cf3  & \cf6 return\cf3  & "You may also disable conversion by pressing the caps lock key. Turn off caps lock to re-enable conversion to plain text." & \cf6 return\cf3  & \cf6 return\cf3  & "Set the frequency of clipboard conversion from the menu." \cf7 with title\cf3  \cf5 msgTitle\cf3  \cf7 buttons\cf3  ("OK") \cf7 default button\cf3  1\
+
+\f1\b end
+\f0\b0  \cf8 aboutAction\cf3 \
+\
+
+\f1\b on
+\f0\b0  \cf8 enableAction\cf3 ()\
+	
+\f1\b if
+\f0\b0  \cf5 runOption\cf3  
+\f1\b is
+\f0\b0  
+\f2\i \cf6 false
+\f0\i0 \cf3  
+\f1\b then
+\f0\b0 \
+		\cf2 -- display dialog "Styled text in the clipboard will be converted to plain text." with title msgTitle buttons ("OK") default button 1 \cf3 \
+		
+\f1\b set
+\f0\b0  \cf5 runOption\cf3  
+\f1\b to
+\f0\b0  
+\f2\i \cf6 true
+\f0\i0 \cf3 \
+		
+\f1\b my
+\f0\b0  \cf8 createMenuItems\cf3 ()\
+	
+\f1\b else
+\f0\b0 \
+		\cf2 -- display dialog "Styled text in the clipboard will retain its styling." with title "Conversion disabled" buttons ("OK") default button 1 \cf3 \
+		
+\f1\b set
+\f0\b0  \cf5 runOption\cf3  
+\f1\b to
+\f0\b0  
+\f2\i \cf6 false
+\f0\i0 \cf3 \
+		
+\f1\b my
+\f0\b0  \cf8 createMenuItems\cf3 ()\
+	
+\f1\b end
+\f0\b0  
+\f1\b if
+\f0\b0 \
+
+\f1\b end
+\f0\b0  \cf8 enableAction\cf3 \
+\
+
+\f1\b on
+\f0\b0  
+\f1\b \cf4 idle
+\f0\b0 \cf3  \{\}\
+	\
+	
+\f1\b set
+\f0\b0  \cf5 currentModifierFlags\cf3  
+\f1\b to
+\f0\b0  (\cf5 myApp's\cf3  \cf5 NSEvent's\cf3  \cf8 modifierFlags\cf3 ())\
+	
+\f1\b set
+\f0\b0  \cf5 capsLockKeyOn\cf3  
+\f1\b to
+\f0\b0  (\cf5 currentModifierFlags\cf3  
+\f1\b div
+\f0\b0  (\cf5 myApp's\cf3  \cf5 NSEventModifierFlagCapsLock\cf3  
+\f1\b as
+\f0\b0  
+\f2\i \cf4 integer
+\f0\i0 \cf3 ) 
+\f1\b mod
+\f0\b0  2 = 1) 
+\f1\b as
+\f0\b0  
+\f2\i \cf4 boolean
+\f0\i0 \cf3 \
+	\
+	
+\f1\b if
+\f0\b0  \cf5 oldState\cf3  \uc0\u8800  \cf5 capsLockKeyOn\cf3  
+\f1\b then
+\f0\b0 \
+		
+\f1\b if
+\f0\b0  ((\cf5 capsLockKeyOn\cf3  
+\f1\b is
+\f0\b0  
+\f2\i \cf6 true
+\f0\i0 \cf3 ) 
+\f1\b or
+\f0\b0  (\cf5 runOption\cf3  
+\f1\b is
+\f0\b0  
+\f2\i \cf6 false
+\f0\i0 \cf3 )) 
+\f1\b then
+\f0\b0 \
+			
+\f1\b my
+\f0\b0  \cf8 inactiveImageShow\cf3 ()\
+		
+\f1\b else
+\f0\b0 \
+			
+\f1\b my
+\f0\b0  \cf8 menuImageShow\cf3 ()\
+		
+\f1\b end
+\f0\b0  
+\f1\b if
+\f0\b0 \
+	
+\f1\b end
+\f0\b0  
+\f1\b if
+\f0\b0 \
+	\
+	
+\f1\b if
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 statusItemMenuOpen\cf3  
+\f1\b then
+\f0\b0 \
+		
+\f1\b set
+\f0\b0  \cf5 currentModifierFlags\cf3  
+\f1\b to
+\f0\b0  (\cf5 myApp's\cf3  \cf5 NSEvent's\cf3  \cf8 modifierFlags\cf3 ())\
+		
+\f1\b set
+\f0\b0  \cf5 capsLockKeyOn\cf3  
+\f1\b to
+\f0\b0  (\cf5 currentModifierFlags\cf3  
+\f1\b div
+\f0\b0  (\cf5 myApp's\cf3  \cf5 NSEventModifierFlagCapsLock\cf3  
+\f1\b as
+\f0\b0  
+\f2\i \cf4 integer
+\f0\i0 \cf3 ) 
+\f1\b mod
+\f0\b0  2 = 1) 
+\f1\b as
+\f0\b0  
+\f2\i \cf4 boolean
+\f0\i0 \cf3 \
+		
+\f1\b if
+\f0\b0  \cf5 capsLockKeyOn\cf3  
+\f1\b then
+\f0\b0 \
+			
+\f1\b if
+\f0\b0  (
+\f1\b my
+\f0\b0  (\cf5 statusItemMenu's\cf3  \cf8 itemAtIndex\cf3 :3)) = (
+\f1\b my
+\f0\b0  \cf5 noCapsMenuItem\cf3 ) 
+\f1\b then
+\f0\b0 \
+				
+\f1\b my
+\f0\b0  (\cf5 statusItemMenu's\cf3  \cf8 removeItem\cf3 :(
+\f1\b my
+\f0\b0  \cf5 noCapsMenuItem\cf3 ))\
+				
+\f1\b set
+\f0\b0  \cf5 enabled\cf3  
+\f1\b of
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 capsOnMenuItem\cf3  
+\f1\b to
+\f0\b0  
+\f2\i \cf6 false
+\f0\i0 \cf3 \
+				
+\f1\b my
+\f0\b0  (\cf5 statusItemMenu's\cf3  \cf8 insertItem\cf3 :(
+\f1\b my
+\f0\b0  \cf5 capsOnMenuItem\cf3 ) \cf8 atIndex\cf3 :3)\
+				
+\f1\b my
+\f0\b0  \cf8 inactiveImageShow\cf3 ()\
+			
+\f1\b end
+\f0\b0  
+\f1\b if
+\f0\b0 \
+		
+\f1\b else
+\f0\b0 \
+			
+\f1\b if
+\f0\b0  (
+\f1\b my
+\f0\b0  (\cf5 statusItemMenu's\cf3  \cf8 itemAtIndex\cf3 :3)) = (
+\f1\b my
+\f0\b0  \cf5 capsOnMenuItem\cf3 ) 
+\f1\b then
+\f0\b0 \
+				
+\f1\b my
+\f0\b0  (\cf5 statusItemMenu's\cf3  \cf8 removeItem\cf3 :(
+\f1\b my
+\f0\b0  \cf5 capsOnMenuItem\cf3 ))\
+				
+\f1\b set
+\f0\b0  \cf5 enabled\cf3  
+\f1\b of
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 noCapsMenuItem\cf3  
+\f1\b to
+\f0\b0  
+\f2\i \cf6 false
+\f0\i0 \cf3 \
+				
+\f1\b my
+\f0\b0  (\cf5 statusItemMenu's\cf3  \cf8 insertItem\cf3 :(
+\f1\b my
+\f0\b0  \cf5 noCapsMenuItem\cf3 ) \cf8 atIndex\cf3 :3)\
+				
+\f1\b my
+\f0\b0  \cf8 menuImageShow\cf3 ()\
+			
+\f1\b end
+\f0\b0  
+\f1\b if
+\f0\b0 \
+		
+\f1\b end
+\f0\b0  
+\f1\b if
+\f0\b0 \
+	
+\f1\b else
+\f0\b0 \
+		
+\f1\b if
+\f0\b0  (
+\f1\b my
+\f0\b0  (\cf5 statusItemMenu's\cf3  \cf8 itemAtIndex\cf3 :3)) = (
+\f1\b my
+\f0\b0  \cf5 capsOnMenuItem\cf3 ) 
+\f1\b then
+\f0\b0 \
+			
+\f1\b my
+\f0\b0  (\cf5 statusItemMenu's\cf3  \cf8 removeItem\cf3 :(
+\f1\b my
+\f0\b0  \cf5 capsOnMenuItem\cf3 ))\
+			
+\f1\b set
+\f0\b0  \cf5 enabled\cf3  
+\f1\b of
+\f0\b0  
+\f1\b my
+\f0\b0  \cf5 noCapsMenuItem\cf3  
+\f1\b to
+\f0\b0  
+\f2\i \cf6 false
+\f0\i0 \cf3 \
+			
+\f1\b my
+\f0\b0  (\cf5 statusItemMenu's\cf3  \cf8 insertItem\cf3 :(
+\f1\b my
+\f0\b0  \cf5 noCapsMenuItem\cf3 ) \cf8 atIndex\cf3 :3)\
+			
+\f1\b my
+\f0\b0  \cf8 menuImageShow\cf3 ()\
+		
+\f1\b end
+\f0\b0  
+\f1\b if
+\f0\b0 \
+	
+\f1\b end
+\f0\b0  
+\f1\b if
+\f0\b0 \
+	\
+	
+\f1\b if
+\f0\b0  \cf5 capsLockKeyOn\cf3  
+\f1\b is
+\f0\b0  
+\f2\i \cf6 false
+\f0\i0 \cf3  
+\f1\b then
+\f0\b0 \
+		
+\f1\b if
+\f0\b0  \cf5 runOption\cf3  
+\f1\b is
+\f0\b0  
+\f2\i \cf6 true
+\f0\i0 \cf3  
+\f1\b then
+\f0\b0 \
+			\cf2 -- convert styled text in clipboard\cf3 \
+			
+\f1\b set
+\f0\b0  \cf5 clipInfo\cf3  
+\f1\b to
+\f0\b0  
+\f1\b get
+\f0\b0  (
+\f1\b \cf7 clipboard info
+\f0\b0 \cf3 ) 
+\f1\b as
+\f0\b0  
+\f2\i \cf4 string
+\f0\i0 \cf3 \
+			
+\f1\b set
+\f0\b0  \cf5 styleList\cf3  
+\f1\b to
+\f0\b0  \{"RTF", "HTML", "PDF", "rtfd"\}\
+			
+\f1\b repeat
+\f0\b0  
+\f1\b with
+\f0\b0  \cf5 theStyle\cf3  
+\f1\b in
+\f0\b0  \cf5 styleList\cf3 \
+				
+\f1\b if
+\f0\b0  \cf5 clipInfo\cf3  
+\f1\b contains
+\f0\b0  \cf5 theStyle\cf3  
+\f1\b then
+\f0\b0 \
+					
+\f1\b \cf7 set the clipboard to
+\f0\b0 \cf3  (
+\f1\b \cf7 the clipboard
+\f0\b0 \cf3  \cf7 as\cf3  
+\f2\i \cf4 text
+\f0\i0 \cf3 )\
+					
+\f1\b exit
+\f0\b0  
+\f1\b repeat
+\f0\b0 \
+				
+\f1\b end
+\f0\b0  
+\f1\b if
+\f0\b0 \
+			
+\f1\b end
+\f0\b0  
+\f1\b repeat
+\f0\b0 \
+		
+\f1\b end
+\f0\b0  
+\f1\b if
+\f0\b0 \
+	
+\f1\b else
+\f0\b0 \
+		\cf2 -- if control key held down, exit applet\cf3 \
+		
+\f1\b if
+\f0\b0  (((\cf5 myApp's\cf3  \cf5 NSEvent's\cf3  \cf8 modifierFlags\cf3 ()) 
+\f1\b div
+\f0\b0  262144) 
+\f1\b mod
+\f0\b0  2) > 0 
+\f1\b then
+\f0\b0  \cf2 -- test for control key\cf3 \
+			
+\f1\b \cf4 delay
+\f0\b0 \cf3  0.25\
+			
+\f1\b if
+\f0\b0  (((\cf5 myApp's\cf3  \cf5 NSEvent's\cf3  \cf8 modifierFlags\cf3 ()) 
+\f1\b div
+\f0\b0  262144) 
+\f1\b mod
+\f0\b0  2) > 0 
+\f1\b then
+\f0\b0  \cf2 -- test again after 1/4 second\cf3 \
+				
+\f1\b if
+\f0\b0  (((\cf5 myApp's\cf3  \cf5 NSEvent's\cf3  \cf8 modifierFlags\cf3 ()) 
+\f1\b div
+\f0\b0  524288) 
+\f1\b mod
+\f0\b0  2) = 0 
+\f1\b then
+\f0\b0  \cf2 -- option key NOT down\cf3 \
+					
+\f1\b if
+\f0\b0  (((\cf5 myApp's\cf3  \cf5 NSEvent's\cf3  \cf8 modifierFlags\cf3 ()) 
+\f1\b div
+\f0\b0  131072) 
+\f1\b mod
+\f0\b0  2) = 0 
+\f1\b then
+\f0\b0  \cf2 -- shift key NOT down\cf3 \
+						
+\f1\b if
+\f0\b0  (((\cf5 myApp's\cf3  \cf5 NSEvent's\cf3  \cf8 modifierFlags\cf3 ()) 
+\f1\b div
+\f0\b0  1048576) 
+\f1\b mod
+\f0\b0  2) = 0 
+\f1\b then
+\f0\b0  \cf2 -- command key NOT down\cf3 \
+							\cf2 -- tell application "System Events" -- needed because "background only" prevents the script from displaying dialog\cf3 \
+							
+\f1\b \cf4 activate
+\f0\b0 \cf3 \
+							
+\f1\b \cf7 display dialog
+\f0\b0 \cf3  "Clipboard conversion stopped." & \cf6 return\cf3  & \cf6 return\cf3  & "Restart me to resume converting clipboard styled text to plain text." \cf7 with title\cf3  \cf5 msgTitle\cf3  \cf7 buttons\cf3  \{"OK"\} \cf7 default button\cf3  1 \cf7 giving up after\cf3  3\
+							\cf2 -- end tell\cf3 \
+							
+\f1\b tell
+\f0\b0  
+\f1\b me
+\f0\b0  
+\f1\b to
+\f0\b0  
+\f1\b \cf4 quit
+\f0\b0 \cf3 \
+						
+\f1\b end
+\f0\b0  
+\f1\b if
+\f0\b0 \
+					
+\f1\b end
+\f0\b0  
+\f1\b if
+\f0\b0 \
+				
+\f1\b end
+\f0\b0  
+\f1\b if
+\f0\b0 \
+			
+\f1\b end
+\f0\b0  
+\f1\b if
+\f0\b0 \
+		
+\f1\b end
+\f0\b0  
+\f1\b if
+\f0\b0 \
+	
+\f1\b end
+\f0\b0  
+\f1\b if
+\f0\b0 \
+	\
+	
+\f1\b copy
+\f0\b0  \cf5 capsLockKeyOn\cf3  
+\f1\b to
+\f0\b0  \cf5 oldState\cf3 \
+	\
+	
+\f1\b return
+\f0\b0  \cf5 interval\cf3 \
+	\
+
+\f1\b end
+\f0\b0  
+\f1\b \cf4 idle
+\f0\b0 \cf3 \
+\
+
+\f1\b on
+\f0\b0  
+\f1\b \cf4 quit
+\f0\b0 \cf3  \{\}\
+	\
+	
+\f1\b \cf7 assign value
+\f0\b0 \cf3  \cf5 interval\cf3  \cf7 to key\cf3  "interval"\
+	\
+	
+\f1\b continue
+\f0\b0  
+\f1\b \cf4 quit
+\f0\b0 \cf3 \
+	\
+
+\f1\b end
+\f0\b0  
+\f1\b \cf4 quit}

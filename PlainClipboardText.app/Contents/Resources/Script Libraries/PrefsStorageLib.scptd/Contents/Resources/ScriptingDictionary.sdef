@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE dictionary SYSTEM "file://localhost/System/Library/DTDs/sdef.dtd">
+<dictionary title="Dictionary">
+	<suite name="Storage Suite" code="%©Ss" description="Contains commands to allow applets and scripts to use the defaults system to store and retrieve values. The values are ultimately saved in preferences files in your ~/Library/Preferences folder.">
+        <class name="reference" code="obj " hidden="yes">
+            <synonym name="specifier"/>
+        </class>
+		<command name="prepare storage" code="%©Ss%©Ps" description="This command sets up the storage library, and optionally lets you specify initial values. You should call this first thing in both 'run' and 'open' handlers. For applets and .scptd files, you should generally provide the ‘for’ parameter, passing ‘(path to me)’. For .scpt files, or where you wish to share values between scripts, you should omit the ‘for’ parameter, and provide the ‘for domain’ parameter instead. You must supply one or the other.">
+            <parameter name="for" description="Your applet or .scptd file. Always pass '(path to me)'." code="%©Fo" optional="yes">
+                <type type="file">
+                </type>
+            </parameter>
+            <parameter name="for domain" description="A unique identifier. This could be a bundle ID where you are sharing values, and in any case should follow the rules for domain names (your domain name in reverse order if you have one, followed by a unique string; limit characters to A-z and 0-9 plus space and -; no underscores). The values will be stored in a file of the same name, with an extension of .plist, in your ~/Library/Preferences folder. This parameter is ignored if the ‘for’ parameter is provided." code="%©Fd" optional="yes">
+                <type type="text">
+                </type>
+            </parameter>
+			<parameter name="default values" description="An optional record containing default values to be used when no other value has been assigned. These values are typically used when an applet or bundle script is run for the first time. They should be one of the following property list classes: text, integer, real, boolean, date, list, or record. You can also pass a file or alias, in which case the value will be stored as a POSIX path, abbreviated with a tilde (~) if possible." code="%©Dv" optional="yes">
+				<type type="record">
+				</type>
+			</parameter>
+			<parameter name="write lock" description="Normally the ‘prepare storage’ command will change the permissions of an applet or .scptd file's main.scpt file to prevent it being modified when run. If you do not want this done, for example if you are codesigning or notarizing the file, you can set this parameter to false. This parameter is ignored in the case of .scpt files." code="%©Wl" optional="yes">
+				<type type="boolean">
+				</type>
+			</parameter>
+		</command>
+		<command name="assign value" code="%©Ss%©Av" description="Assigns a value to a key.">
+			<direct-parameter description="The value to store. The value must be one of the following property list classes: text, integer, real, boolean, date, list, or record. In the case of lists and records, their contents must be property list classes.">
+				<type type="any">
+				</type>
+			</direct-parameter>
+			<parameter name="to key" description="The key to assign the value to. Keys should follow the rules for variable names." code="%©Sn" optional="no">
+				<type type="text">
+				</type>
+			</parameter>
+		</command>
+		<command name="value for key" code="%©Ss%©Vk" description="Fetches the value assigned to the key.">
+			<direct-parameter description="The key.">
+				<type type="text">
+				</type>
+			</direct-parameter>
+			<result description="The stored value, or 'missing value' if it is not found.">
+				<type type="any">
+				</type>
+			</result>
+		</command>
+		<command name="assign file" code="%©Ss%©Af" description="Assigns a file to a key.">
+			<direct-parameter description="The file or alias to store. The file will be stored as a POSIX path, abbreviated with a tilde (~) if possible.">
+				<type type="file">
+				</type>
+			</direct-parameter>
+			<parameter name="to key" description="The key to assign the file to. Keys should follow the rules for variable names." code="%©Sn" optional="no">
+				<type type="text">
+				</type>
+			</parameter>
+		</command>
+		<command name="file for key" code="%©Ss%©Fk" description="Fetches the file assigned to the key.">
+			<direct-parameter description="The key.">
+				<type type="text">
+				</type>
+			</direct-parameter>
+			<result description="A file stored using the 'assign file' command, or 'missing value' if it is not found.">
+				<type type="file">
+				</type>
+			</result>
+		</command>
+		<command name="assign alias" code="%©Ss%©Aa" description="Assigns an alias to a key. Unless you require tracking of moved files, it is more efficient to use ‘assign file’.">
+			<direct-parameter description="The alias to store. The alias will be stored as bookmark data.">
+				<type type="file">
+				</type>
+			</direct-parameter>
+			<parameter name="to key" description="The key to assign the file to. Keys should follow the rules for variable names." code="%©Sn" optional="no">
+				<type type="text">
+				</type>
+			</parameter>
+		</command>
+		<command name="alias for key" code="%©Ss%©Ak" description="Fetches the alias assigned to the key.">
+			<direct-parameter description="The key.">
+				<type type="text">
+				</type>
+			</direct-parameter>
+			<result description="An alias stored using the ‘assign alias’ command, or ‘missing value’ if it is not found.">
+				<type type="file">
+				</type>
+			</result>
+		</command>
+		<command name="remove value for key" code="%©Ss%©Rv" description="Removes any value assigned to the key. This can also be done by assigning missing value to a key.">
+			<direct-parameter description="The key.">
+				<type type="text">
+				</type>
+			</direct-parameter>
+		</command>
+		<command name="assign defaults" code="%©Ss%©Ad" description="Assigns default values to be used when no other value has been assigned. These are typically used when an applet is run for the first time.">
+			<direct-parameter description="A record, where the labels are the keys to use. The values should be one of the following property list classes: text, integer, real, boolean, date, list, or record. In the case of lists and records, their contents must be property list classes. You can also pass a file or alias, in which case the value will be stored as a POSIX path, abbreviated with a tilde (~) if possible.">
+				<type type="record">
+				</type>
+			</direct-parameter>
+		</command>
+	</suite>
+</dictionary>

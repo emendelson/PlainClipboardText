@@ -1,0 +1,646 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2512
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica-Bold;\f1\fswiss\fcharset0 Helvetica;\f2\fswiss\fcharset0 Helvetica-Oblique;
+\f3\fnil\fcharset0 Verdana-Bold;\f4\fnil\fcharset0 Verdana;\f5\fnil\fcharset0 Verdana-Italic;
+}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red108\green5\blue211;\red0\green0\blue255;
+\red64\green128\blue0;\red0\green22\blue176;\red0\green0\blue0;\red0\green0\blue255;\red108\green5\blue211;
+\red64\green128\blue0;\red0\green22\blue176;\red68\green21\blue176;\red77\green78\blue78;\red76\green78\blue78;
+}
+{\*\expandedcolortbl;;\csgenericrgb\c0\c0\c0;\csgenericrgb\c42337\c1841\c82833;\csgenericrgb\c0\c0\c100000;
+\csgenericrgb\c25000\c50001\c0;\csgenericrgb\c0\c8656\c68986;\csgray\c0;\cssrgb\c0\c0\c100000;\csgenericrgb\c42300\c1800\c82800;
+\csgenericrgb\c25000\c50000\c0;\csgenericrgb\c0\c8700\c69000;\csgenericrgb\c26600\c8300\c69100;\csgenericrgb\c30000\c30500\c30500;\csgenericrgb\c29999\c30457\c30457;
+}
+\deftab720
+\pard\pardeftab720\sl264\slmult1\partightenfactor0
+
+\f0\b\fs48 \cf0 \expnd0\expndtw0\kerning0
+PrefsStorageLib v1.1.0\
+
+\f1\b0\fs28 \
+\pard\pardeftab720\sl264\slmult1\partightenfactor0
+
+\f0\b \cf0 PrefsStorageLib
+\f1\b0  is a script library that allows scripts to store and retrieve values using the user defaults system used by other applications.\
+\
+AppleScript was designed so that when a script is run, if any top-level values changed, the script will, if possible, be re-saved with the new values. This behavior is used in many scripts as a way of storing values between launches, by declaring them as properties.\
+\
+This approach cannot be used with code-signed or notarized applets: an application cannot be modified after it is signed. It also causes security complications in recent versions of macOS, because permissions have to be granted again each time a script changes.\
+\
+Script modification can be eliminated by file locking, or by eliminating and/or resetting top-level variables. But this creates the problem of how to store values you need to persist between launches. That's where 
+\f0\b PrefsStorageLib
+\f1\b0  comes in.\
+\
+
+\f0\b PrefsStorageLib
+\f1\b0  takes advantage of the user defaults system, and values are stored in the relevant property list (.plist) files in a user's 
+\f2\i ~/Library/Preferences
+\f1\i0  folder. It's a little more complicated to use than just updating properties, but it has a couple of advantages: preferences are stored per user, rather than per application; values are updated as you request, rather than upon successful quit; and editing a script does not reset stored values.\
+\
+There are restrictions on the type of values you can store: booleans, strings, integers, reals, and dates, as well as lists and records as long as they only contain these classes. But as you will see, there are also ways of storing files.\
+\
+Here's a simple applet that uses a property to story and update a value each time it has been run:\
+\
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b\fs26 \cf2 \kerning1\expnd0\expndtw0 use
+\f4\b0  \cf3 AppleScript\cf2  \cf4 version\cf2  "2.5"\
+
+\f3\b use
+\f4\b0  
+\f5\i \cf4 scripting additions
+\f4\i0 \cf2 \
+\
+
+\f3\b property
+\f4\b0  \cf5 runCount\cf2  : 0\
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b \cf6 display dialog
+\f4\b0 \cf2  "This applet has been run " & \cf5 runCount\cf2  & " times."\
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b \cf2 set
+\f4\b0  \cf5 runCount\cf2  
+\f3\b to
+\f4\b0  \cf5 runCount\cf2  + 1\
+\pard\pardeftab720\sl264\slmult1\partightenfactor0
+
+\f1\fs28 \cf0 \expnd0\expndtw0\kerning0
+\
+Here is the same script using 
+\f0\b PrefsStorageLib
+\f1\b0  to store the 
+\f2\i runCount
+\f1\i0  value:\
+\
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b\fs26 \cf2 \kerning1\expnd0\expndtw0 use
+\f4\b0  \cf3 AppleScript\cf2  \cf4 version\cf2  "2.5"\
+
+\f3\b use
+\f4\b0  
+\f5\i \cf4 scripting additions
+\f4\i0 \cf2 \
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b \cf7 use
+\f4\b0  
+\f5\i \cf8 script
+\f4\i0 \cf7  "PrefsStorageLib" \cf8 version\cf7  "1.1.0"\
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+\cf2 \
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b \cf6 prepare storage
+\f4\b0 \cf2  \cf6 for\cf2  (
+\f3\b \cf6 path to
+\f4\b0 \cf2  
+\f3\b me
+\f4\b0 ) \cf6 default values\cf2  \{\cf5 runCount\cf2 :0\}\
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b \cf2 set
+\f4\b0  \cf5 runCount\cf2  
+\f3\b to
+\f4\b0  
+\f3\b \cf6 value for key
+\f4\b0 \cf2  "runCount"\
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b \cf6 display dialog
+\f4\b0 \cf2  "This applet has been run " & \cf5 runCount\cf2  & " times."\
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b \cf2 set
+\f4\b0  \cf5 runCount\cf2  
+\f3\b to
+\f4\b0  \cf5 runCount\cf2  + 1\
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b \cf6 assign value
+\f4\b0 \cf2  \cf5 runCount\cf2  \cf6 to key\cf2  "runCount"\
+\pard\pardeftab720\sl264\slmult1\partightenfactor0
+
+\f1\fs28 \cf0 \expnd0\expndtw0\kerning0
+\
+The 
+\f0\b use
+\f1\b0  statement tells the script to load the library, and should appear at the beginning. The 
+\f0\b prepare storage
+\f1\b0  command initializes the library, and the optional 
+\f0\b default values
+\f1\b0  parameter lets you define default fall-back values. By default, the permissions of the applet or script bundle's 
+\f2\i main.scpt
+\f1\i0  file will be set so that the file cannot be modified. If you don't want this to happen for some reason, you can pass 
+\f2\i false
+\f1\i0  to the optional 
+\f0\b write lock
+\f1\b0  parameter.\
+\
+To retrieve a value, the 
+\f0\b value for key
+\f1\b0  command is used. You define the key \'97 its name follows the normal variable naming rules \'97 and pass it as a string. In this example it matches the variable name, but it doesn't have to.\
+\
+Once the variable has been incremented, the new value is stored using the 
+\f0\b assign value
+\f1\b0  command, using the same key.\
+\
+If variables might be modified in several places in a script, it might be simpler to continue using a property, and to store any changes in a 
+\f0\b quit
+\f1\b0  handler. So a variation of the above script might be more like this:\
+\
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b\fs26 \cf7 \kerning1\expnd0\expndtw0 use
+\f4\b0  \cf9 AppleScript\cf7  \cf8 version\cf7  "2.5"\
+
+\f3\b use
+\f4\b0  
+\f5\i \cf8 scripting additions
+\f4\i0 \cf7 \
+
+\f3\b use
+\f4\b0  
+\f5\i \cf8 script
+\f4\i0 \cf7  "PrefsStorageLib" \cf8 version\cf7  "1.1.0"\
+
+\f3\b property
+\f4\b0  \cf10 runCount\cf7  : 0\
+
+\f3\b property
+\f4\b0  \cf10 someFolder\cf7  : 
+\f5\i \cf8 missing value
+\f4\i0 \cf7 \
+\
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b \cf11 prepare storage
+\f4\b0 \cf7  \cf11 for\cf7  (
+\f3\b \cf11 path to
+\f4\b0 \cf7  
+\f3\b me
+\f4\b0 ) \cf11 default values\cf7  \{\cf10 runCount\cf7 :0, \cf10 someFolder\cf7 :(
+\f3\b \cf11 path to
+\f4\b0 \cf7  \cf12 desktop\cf7 )\}\
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b set
+\f4\b0  
+\f3\b my
+\f4\b0  \cf10 runCount\cf7  
+\f3\b to
+\f4\b0  
+\f3\b \cf11 value for key
+\f4\b0 \cf7  "runCount"\
+
+\f3\b set
+\f4\b0  
+\f3\b my
+\f4\b0  \cf10 someFolder\cf7  
+\f3\b to
+\f4\b0  
+\f3\b \cf11 file for key
+\f4\b0 \cf7  "someFolder"\
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b \cf11 display dialog
+\f4\b0 \cf7  "This applet has been run " & \cf10 runCount\cf7  & " times."\
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b set
+\f4\b0  \cf10 runCount\cf7  
+\f3\b to
+\f4\b0  \cf10 runCount\cf7  + 1\
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f5\i \cf13 -- do lots of other stuff that might change properties
+\f4\i0 \cf7 \
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b set
+\f4\b0  \cf10 someFolder\cf7  
+\f3\b to
+\f4\b0  (
+\f3\b \cf11 choose folder
+\f4\b0 \cf7 )\
+\
+
+\f3\b on
+\f4\b0  
+\f3\b \cf8 quit
+\f4\b0 \cf7 \
+	
+\f5\i \cf13 -- update value of properties you wish to persist
+\f4\i0 \cf7 \
+	
+\f3\b \cf11 assign value
+\f4\b0 \cf7  \cf10 runCount\cf7  \cf11 to key\cf7  "runCount"\
+	
+\f3\b \cf11 assign file
+\f4\b0 \cf7  \cf10 someFolder\cf7  \cf11 to key\cf7  "someFolder"\
+	
+\f3\b continue
+\f4\b0  
+\f3\b \cf8 quit
+\f4\b0 \cf7 \
+
+\f3\b end
+\f4\b0  
+\f3\b \cf8 quit
+\f4\b0 \cf7 \
+\pard\pardeftab720\sl264\slmult1\partightenfactor0
+
+\f1\fs28 \cf0 \expnd0\expndtw0\kerning0
+\
+Here is another example of how persistent properties are sometimes used. In this case, the script is generally used as an applet, to process the dropped files. But if double clicked, the run handler is used to specify the destination folder for the processed files.\
+\
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b\fs26 \cf2 \kerning1\expnd0\expndtw0 use
+\f4\b0  \cf3 AppleScript\cf2  \cf4 version\cf2  "2.5"\
+
+\f3\b use
+\f4\b0  
+\f5\i \cf4 scripting additions
+\f4\i0 \cf2 \
+\
+
+\f3\b property
+\f4\b0  \cf5 destinationFolder\cf2  : 
+\f5\i \cf4 missing value
+\f4\i0 \cf2 \
+\
+
+\f3\b on
+\f4\b0  
+\f3\b \cf4 run
+\f4\b0 \cf2 \
+	
+\f3\b set
+\f4\b0  
+\f3\b my
+\f4\b0  \cf5 destinationFolder\cf2  
+\f3\b to
+\f4\b0  (
+\f3\b \cf6 choose folder
+\f4\b0 \cf2  \cf6 with prompt\cf2  "Choose the destination folder:")\
+
+\f3\b end
+\f4\b0  
+\f3\b \cf4 run
+\f4\b0 \cf2 \
+\
+
+\f3\b on
+\f4\b0  
+\f3\b \cf4 open
+\f4\b0 \cf2  \cf5 fileList\cf2 \
+	
+\f3\b if
+\f4\b0  \cf5 destinationFolder\cf2  
+\f3\b is
+\f4\b0  
+\f5\i \cf4 missing value
+\f4\i0 \cf2  
+\f3\b then
+\f4\b0 \
+		
+\f3\b set
+\f4\b0  \cf5 destinationFolder\cf2  
+\f3\b to
+\f4\b0  (
+\f3\b \cf6 choose folder
+\f4\b0 \cf2  \cf6 with prompt\cf2  "Choose the destination folder:")\
+	
+\f3\b end
+\f4\b0  
+\f3\b if
+\f4\b0 \
+	
+\f3\b repeat
+\f4\b0  
+\f3\b with
+\f4\b0  \cf5 aFile\cf2  
+\f3\b in
+\f4\b0  \cf5 fileList\cf2 \
+		\cf14 -- process aFile, saving in destinationFolder\cf2 \
+	
+\f3\b end
+\f4\b0  
+\f3\b repeat
+\f4\b0 \
+
+\f3\b end
+\f4\b0  
+\f3\b \cf4 open
+\f4\b0 \cf2 \
+\pard\pardeftab720\sl264\slmult1\partightenfactor0
+
+\f1\fs28 \cf0 \expnd0\expndtw0\kerning0
+\
+Here is the same script using 
+\f0\b PrefsStorageLib
+\f1\b0 :\
+\
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b\fs26 \cf2 \kerning1\expnd0\expndtw0 use
+\f4\b0  \cf3 AppleScript\cf2  \cf4 version\cf2  "2.5"\
+
+\f3\b use
+\f4\b0  
+\f5\i \cf4 scripting additions
+\f4\i0 \cf2 \
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b \cf7 use
+\f4\b0  
+\f5\i \cf8 script
+\f4\i0 \cf7  "PrefsStorageLib" \cf8 version\cf7  "1.1.0"\
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+\cf2 \
+
+\f3\b on
+\f4\b0  
+\f3\b \cf4 run
+\f4\b0 \cf2 \
+	
+\f3\b \cf6 prepare storage
+\f4\b0 \cf2  \cf6 for\cf2  (
+\f3\b \cf6 path to
+\f4\b0 \cf2  
+\f3\b me
+\f4\b0 )\
+	
+\f3\b \cf6 assign file
+\f4\b0 \cf2  (
+\f3\b \cf6 choose folder
+\f4\b0 \cf2  \cf6 with prompt\cf2  "Choose the destination folder:") \cf6 to key\cf2  "destinationFolder"\
+
+\f3\b end
+\f4\b0  
+\f3\b \cf4 run
+\f4\b0 \cf2 \
+\
+
+\f3\b on
+\f4\b0  
+\f3\b \cf4 open
+\f4\b0 \cf2  \cf5 fileList\cf2 \
+	
+\f3\b \cf6 prepare storage
+\f4\b0 \cf2  \cf6 for\cf2  (
+\f3\b \cf6 path to
+\f4\b0 \cf2  
+\f3\b me
+\f4\b0 )\
+	
+\f3\b set
+\f4\b0  \cf5 destinationFolder\cf2  
+\f3\b to
+\f4\b0  
+\f3\b \cf6 file for key
+\f4\b0 \cf2  "destinationFolder"\
+	
+\f3\b if
+\f4\b0  \cf5 destinationFolder\cf2  
+\f3\b is
+\f4\b0  
+\f5\i \cf4 missing value
+\f4\i0 \cf2  
+\f3\b then
+\f4\b0 \
+		
+\f3\b set
+\f4\b0  \cf5 destinationFolder\cf2  
+\f3\b to
+\f4\b0  (
+\f3\b \cf6 choose folder
+\f4\b0 \cf2  \cf6 with prompt\cf2  "Choose the destination folder:")\
+		
+\f3\b \cf6 assign file
+\f4\b0 \cf2  \cf5 destinationFolder\cf2  \cf6 to key\cf2  "destinationFolder"\
+	
+\f3\b end
+\f4\b0  
+\f3\b if
+\f4\b0 \
+	
+\f3\b repeat
+\f4\b0  
+\f3\b with
+\f4\b0  \cf5 aFile\cf2  
+\f3\b in
+\f4\b0  \cf5 fileList\cf2 \
+		\cf14 -- process aFile, saving in destinationFolder\cf2 \
+	
+\f3\b end
+\f4\b0  
+\f3\b repeat
+\f4\b0 \
+
+\f3\b end
+\f4\b0  
+\f3\b \cf4 open
+\f4\b0 \cf2 \
+\pard\pardeftab720\sl264\slmult1\partightenfactor0
+
+\f1\fs28 \cf0 \expnd0\expndtw0\kerning0
+\
+The 
+\f0\b prepare storage
+\f1\b0  command appears at the beginning of both the 
+\f0\b open
+\f1\b0  and 
+\f0\b run
+\f1\b0  handlers. There is no 
+\f0\b default values
+\f1\b0  parameter because there is no need in the case of a value of 
+\f2\i missing value
+\f1\i0 .\
+\
+In the run handler, the 
+\f0\b assign file
+\f1\b0  command is used, rather than 
+\f0\b assign value
+\f1\b0 . The value is actually stored as the POSIX path of the file, abbreviated with a tilde character if possible.\
+\
+In the open handler, the 
+\f0\b file for key
+\f1\b0  command is used. This will attempt to convert the stored POSIX path to an AppleScript file reference (
+\f2\i \'abclass furl\'bb
+\f1\i0 ).\
+\
+If you required the stored destination to behave like an alias, resolving even if moved, you can use the 
+\f0\b assign alias
+\f1\b0  and 
+\f0\b alias for key
+\f1\b0  commands instead. If you don't need this facility, the 
+\f0\b file
+\f1\b0  equivalents are a little more efficient.\
+\
+There are two other commands. The 
+\f0\b assign defaults
+\f1\b0  command lets you do so outside the 
+\f0\b prepare storage
+\f1\b0  command, and the 
+\f0\b remove value for key
+\f1\b0  does what its name implies \'97 using 
+\f0\b assign value
+\f1\b0  with a value of 
+\f2\i missing value
+\f1\i0  will do the same thing.\
+\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardeftab720\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\b\fs38 \cf0 \kerning1\expnd0\expndtw0 Using PrefsStorageLib outside applets\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardeftab720\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\b0\fs28 \cf0 \
+You can use PrefsStorageLib in 
+\f2\i .scptd
+\f1\i0  files in the same way as in applets, still passing 
+\f0\b path to me
+\f1\b0  to the 
+\f0\b for
+\f1\b0  argument of the 
+\f0\b prepare storage
+\f1\b0  command. You can also use it in 
+\f2\i .scpt
+\f1\i0  files by supplying the 
+\f0\b for domain
+\f1\b0  parameter instead of the 
+\f0\b for
+\f1\b0  parameter, passing a unique identifier string. This string should follow the rules for Bundle IDs (your domain name in reverse order if you have one, followed by a unique string; limit characters to A-z and 0-9 plus space and -; no underscores). The values will be stored in a file of the same name, with an extension of 
+\f2\i .plist
+\f1\i0 , in your 
+\f2\i ~/Library/Preferences
+\f1\i0  folder.\
+\
+You can also use the 
+\f0\b for domain
+\f1\b0  parameter instead of the 
+\f0\b for
+\f1\b0  parameter if you wish to share preference values between multiple scripts.\
+\
+The following is the first script above rewritten to use the 
+\f0\b for domain
+\f1\b0  parameter:\
+\
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b \cf2 use
+\f4\b0  \cf3 AppleScript\cf2  \cf4 version\cf2  "2.5"\
+
+\f3\b use
+\f4\b0  
+\f5\i \cf4 scripting additions
+\f4\i0 \cf2 \
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b \cf7 use
+\f4\b0  
+\f5\i \cf8 script
+\f4\i0 \cf7  "PrefsStorageLib" \cf8 version\cf7  "1.1.0"\
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+\cf2 \
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b \cf6 prepare storage
+\f4\b0 \cf2  \cf6 for domain\cf2  "com.my-domain-name.some-unique-string" \cf6 default values\cf2  \{\cf5 runCount\cf2 :0\}\
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b \cf2 set
+\f4\b0  \cf5 runCount\cf2  
+\f3\b to
+\f4\b0  
+\f3\b \cf6 value for key
+\f4\b0 \cf2  "runCount"\
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b \cf6 display dialog
+\f4\b0 \cf2  "This script has been run " & \cf5 runCount\cf2  & " times."\
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b \cf2 set
+\f4\b0  \cf5 runCount\cf2  
+\f3\b to
+\f4\b0  \cf5 runCount\cf2  + 1\
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+\cf14 -- do lots of other stuff that might change properties\cf2 \
+\pard\pardeftab480\slleading40\pardirnatural\partightenfactor0
+
+\f3\b \cf6 assign value
+\f4\b0 \cf2  \cf5 runCount\cf2  \cf6 to key\cf2  "runCount"\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardeftab720\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1 \cf0 \
+You must provide the 
+\f0\b for
+\f1\b0  parameter or the 
+\f0\b for domain
+\f1\b0  parameter. If you provide both, the latter is ignored.\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardeftab720\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\b\fs38 \cf0 \
+Deployment\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardeftab720\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\b0\fs28 \cf0 \
+By putting 
+\f0\b \expnd0\expndtw0\kerning0
+PrefsStorageLib
+\f1\b0 \kerning1\expnd0\expndtw0  in your 
+\f2\i ~/Library/Script Libraries
+\f1\i0  folder, you make it available to all your scripts. To use it in scripts you deploy, you can add it to a script bundle. It needs to be in a folder called 
+\f2\i Script Libraries
+\f1\i0 , inside the bundle's 
+\f2\i /Contents/Resources
+\f1\i0  folder. If you use Script Debugger, this step can be automated as part of the 
+\f0\b Export\'85
+\f1\b0  command.\
+\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardeftab720\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\b \cf0 \expnd0\expndtw0\kerning0
+PrefsStorageLib 
+\f1\b0 requires macOS 10.11 or later.\kerning1\expnd0\expndtw0 \
+\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardeftab720\sl288\slmult1\pardirnatural\partightenfactor0
+
+\f0\b\fs36 \cf0 Changes
+\f1\b0\fs28 \
+\
+Version 1.1 introduces the 
+\f0\b for domain
+\f1\b0  parameter, and makes the 
+\f0\b for
+\f1\b0  parameter optional.\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardeftab720\sl288\slmult1\pardirnatural\partightenfactor0
+
+\f0\b\fs38 \cf0 \
+Feedback and updates
+\f1\b0\fs28 \
+I welcome feedback: Shane Stanley, <sstanley@myriad-com.com.au>. \
+The latest version can be downloaded from: <https://latenightsw.com/support/freeware>.\
+\
+
+\f0\b\fs38 Licence\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardeftab720\sl288\slmult1\pardirnatural\partightenfactor0
+
+\f1\b0\fs28 \cf0 \
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardeftab720\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\b \cf0 \expnd0\expndtw0\kerning0
+PrefsStorageLib
+\f1\b0 \kerning1\expnd0\expndtw0  is Copyright \'a9 2019-20 Shane Stanley <sstanley@myriad-com.com.au>\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardeftab720\sl288\slmult1\pardirnatural\partightenfactor0
+\cf0 Permission is hereby granted, free of charge, to any person obtaining a copy of this software to use, copy, and distribute copies, including within commercial software, subject to the following conditions:\
+\
+Modified copies should be distributed under a different name to avoid clashes.\
+\
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\
+\
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\
+}
