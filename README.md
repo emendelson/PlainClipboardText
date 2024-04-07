@@ -1,4 +1,4 @@
-PlainClipboardText is an AppleScript app that automatically converts the contents of the clipboard to plain text.
+**PlainClipboardText** is an AppleScript app that automatically converts the contents of the clipboard to plain text.
 
 A menu provides options for temporarily disabling it, and for setting the interval in which it makes the conversion.
 
